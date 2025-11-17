@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puter.ai Text-to-Speech Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(30, 30, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #6d28d9, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(109, 40, 217, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            color: #a5b4cb;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid #374151;
+            background: #1f2937;
+            color: #e5e7eb;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #6d28d9;
+            box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.2);
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 10px;
+            border: 1px solid #374151;
+            background: #1f2937;
+            color: #e5e7eb;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #6d28d9;
+            box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.2);
+        }
+        
+        .provider-options {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(39, 39, 62, 0.5);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .provider-options.active {
+            display: block;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        #speak-button {
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+        }
+        
+        #speak-button:hover {
+            background: linear-gradient(to right, #059669, #10b981);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        #stop-button {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        #stop-button:hover {
+            background: linear-gradient(to right, #dc2626, #ef4444);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.4);
+        }
+        
+        .engine-button {
+            background: linear-gradient(to right, #3b82f6, #2563eb);
+            color: white;
+        }
+        
+        .engine-button:hover {
+            background: linear-gradient(to right, #2563eb, #3b82f6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 10px;
+            background: rgba(39, 39, 62, 0.5);
+            text-align: center;
+            font-weight: 500;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status.playing {
+            background: rgba(16, 185, 129, 0.2);
+            color: #a7f3d0;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        .status.processing {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fde68a;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fecaca;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .character-count {
+            text-align: right;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .character-count.warning {
+            color: #fbbf24;
+        }
+        
+        .character-count.error {
+            color: #f87171;
+        }
+        
+        .examples {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .example-card {
+            background: rgba(39, 39, 62, 0.5);
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .example-card:hover {
+            background: rgba(59, 59, 92, 0.7);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .example-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
+        }
+        
+        .example-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            color: #a5b4cb;
+        }
+        
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            color: #94a3b8;
+        }
+        
+        .language-flag {
+            display: inline-block;
+            width: 16px;
+            height: 12px;
+            margin-right: 8px;
+            vertical-align: middle;
+            border-radius: 2px;
+        }
+        
+        .flag-us {
+            background: linear-gradient(to bottom, 
+                #b22234 0%, #b22234 7.7%,
+                white 7.7%, white 15.4%,
+                #b22234 15.4%, #b22234 23.1%,
+                white 23.1%, white 30.8%,
+                #b22234 30.8%, #b22234 38.5%,
+                white 38.5%, white 46.2%,
+                #b22234 46.2%, #b22234 54%,
+                white 54%, white 61.7%,
+                #b22234 61.7%, #b22234 69.4%,
+                white 69.4%, white 77.1%,
+                #b22234 77.1%, #b22234 84.8%,
+                white 84.8%, white 92.5%,
+                #b22234 92.5%, #b22234 100%);
+            position: relative;
+        }
+        
+        .flag-id {
+            background: linear-gradient(to bottom, #e70011 50%, #ffffff 50%);
+        }
+        
+        .flag-cn {
+            background: #de2910;
+            position: relative;
+        }
+        
+        .flag-cn::before {
+            content: "★";
+            position: absolute;
+            top: 50%;
+            left: 20%;
+            transform: translateY(-50%);
+            color: #ffde00;
+            font-size: 6px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Puter.ai Text-to-Speech</h1>
+            <p class="subtitle">Convert text to natural-sounding speech with multiple languages, voices, and engines</p>
+        </header>
+        
+        <div class="input-group">
+            <label for="text-input">Text to Convert (max 3000 characters):</label>
+            <textarea id="text-input" placeholder="Enter the text you want to convert to speech...">Hello! Welcome to the Puter.ai Text-to-Speech demonstration. This tool can convert your text into natural-sounding speech in multiple languages.</textarea>
+            <div id="character-count" class="character-count">0/3000 characters</div>
+        </div>
+        
+        <div class="controls-grid">
+            <div class="input-group">
+                <label for="provider-select">Provider:</label>
+                <select id="provider-select">
+                    <option value="aws-polly">AWS Polly</option>
+                    <option value="openai">OpenAI</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="language-select">Language:</label>
+                <select id="language-select">
+                    <option value="en-US"><span class="language-flag flag-us"></span> English (US)</option>
+                    <option value="en-GB">English (British)</option>
+                    <option value="id-ID"><span class="language-flag flag-id"></span> Indonesian</option>
+                    <option value="cmn-CN"><span class="language-flag flag-cn"></span> Chinese (Mandarin)</option>
+                    <option value="es-ES">Spanish (European)</option>
+                    <option value="fr-FR">French</option>
+                    <option value="de-DE">German</option>
+                    <option value="it-IT">Italian</option>
+                    <option value="ja-JP">Japanese</option>
+                    <option value="ko-KR">Korean</option>
+                    <option value="pt-BR">Portuguese (Brazilian)</option>
+                    <option value="ru-RU">Russian</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="voice-select">Voice:</label>
+                <select id="voice-select">
+                    <!-- AWS Polly voices -->
+                    <option value="Joanna" data-provider="aws-polly">Joanna (AWS)</option>
+                    <option value="Matthew" data-provider="aws-polly">Matthew (AWS)</option>
+                    <option value="Salli" data-provider="aws-polly">Salli (AWS)</option>
+                    <option value="Kimberly" data-provider="aws-polly">Kimberly (AWS)</option>
+                    <option value="Kendra" data-provider="aws-polly">Kendra (AWS)</option>
+                    <!-- OpenAI voices -->
+                    <option value="alloy" data-provider="openai">Alloy (OpenAI)</option>
+                    <option value="echo" data-provider="openai">Echo (OpenAI)</option>
+                    <option value="fable" data-provider="openai">Fable (OpenAI)</option>
+                    <option value="onyx" data-provider="openai">Onyx (OpenAI)</option>
+                    <option value="nova" data-provider="openai">Nova (OpenAI)</option>
+                    <option value="shimmer" data-provider="openai">Shimmer (OpenAI)</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="engine-select">Engine (AWS Polly only):</label>
+                <select id="engine-select">
+                    <option value="standard">Standard</option>
+                    <option value="neural">Neural</option>
+                    <option value="long-form">Long-form</option>
+                    <option value="generative">Generative</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="openai-options" class="provider-options">
+            <div class="controls-grid">
+                <div class="input-group">
+                    <label for="model-select">Model (OpenAI):</label>
+                    <select id="model-select">
+                        <option value="gpt-4o-mini-tts">gpt-4o-mini-tts</option>
+                        <option value="tts-1">tts-1</option>
+                        <option value="tts-1-hd">tts-1-hd</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="response-format">Response Format:</label>
+                    <select id="response-format">
+                        <option value="mp3">mp3</option>
+                        <option value="wav">wav</option>
+                        <option value="opus">opus</option>
+                        <option value="aac">aac</option>
+                        <option value="flac">flac</option>
+                        <option value="pcm">pcm</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="instructions">Voice Instructions (Optional):</label>
+                <input type="text" id="instructions" placeholder="e.g., Sound cheerful but not overly fast">
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button id="speak-button">
+                <span>🔊</span> Convert & Play
+            </button>
+            <button id="stop-button">
+                <span>⏹️</span> Stop
+            </button>
+            <button class="engine-button" onclick="playWithEngine('standard')">
+                Standard Engine
+            </button>
+            <button class="engine-button" onclick="playWithEngine('neural')">
+                Neural Engine
+            </button>
+            <button class="engine-button" onclick="playWithEngine('generative')">
+                Generative Engine
+            </button>
+        </div>
+        
+        <div id="status" class="status">Ready to convert text to speech</div>
+        
+        <div class="examples">
+            <div class="example-card" onclick="loadExample('Hello! This is a demonstration of the standard text-to-speech engine.', 'en-US', 'Joanna', 'aws-polly')">
+                <div class="example-title">Standard English</div>
+                <div class="example-text">Hello! This is a demonstration of the standard text-to-speech engine.</div>
+            </div>
+            
+            <div class="example-card" onclick="loadExample('¡Hola! Esta es una demostración del motor de texto a voz en español.', 'es-ES', 'Lupe', 'aws-polly')">
+                <div class="example-title">Spanish Example</div>
+                <div class="example-text">¡Hola! Esta es una demostración del motor de texto a voz en español.</div>
+            </div>
+            
+            <div class="example-card" onclick="loadExample('Bonjour! Ceci est une démonstration de la synthèse vocale en français.', 'fr-FR', 'Celine', 'aws-polly')">
+                <div class="example-title">French Example</div>
+                <div class="example-text">Bonjour! Ceci est une démonstration de la synthèse vocale en français.</div>
+            </div>
+            
+            <div class="example-card" onclick="loadExample('Halo! Ini adalah demonstrasi mesin text-to-speech dalam bahasa Indonesia.', 'id-ID', 'Salli', 'aws-polly')">
+                <div class="example-title">Indonesian Example</div>
+                <div class="example-text">Halo! Ini adalah demonstrasi mesin text-to-speech dalam bahasa Indonesia.</div>
+            </div>
+            
+            <div class="example-card" onclick="loadExample('你好！这是一个文本转语音引擎的演示。', 'cmn-CN', 'Zhiyu', 'aws-polly')">
+                <div class="example-title">Chinese (Simplified) Example</div>
+                <div class="example-text">你好！这是一个文本转语音引擎的演示。</div>
+            </div>
+            
+            <div class="example-card" onclick="loadExample('Hello! This example uses OpenAI voices with custom instructions.', 'en-US', 'alloy', 'openai')">
+                <div class="example-title">OpenAI Example</div>
+                <div class="example-text">Hello! This example uses OpenAI voices with custom instructions.</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Powered by Puter.ai Text-to-Speech API | Max 3000 characters per request
+        </div>
+    </div>
+
+    <script src="https://js.puter.com/v2/"></script>
+    <script>
+        // DOM Elements
+        const textInput = document.getElementById('text-input');
+        const providerSelect = document.getElementById('provider-select');
+        const languageSelect = document.getElementById('language-select');
+        const voiceSelect = document.getElementById('voice-select');
+        const engineSelect = document.getElementById('engine-select');
+        const modelSelect = document.getElementById('model-select');
+        const responseFormat = document.getElementById('response-format');
+        const instructions = document.getElementById('instructions');
+        const openaiOptions = document.getElementById('openai-options');
+        const speakButton = document.getElementById('speak-button');
+        const stopButton = document.getElementById('stop-button');
+        const statusDiv = document.getElementById('status');
+        const characterCount = document.getElementById('character-count');
+        
+        // Variables
+        let currentAudio = null;
+        const MAX_CHARS = 3000;
+        
+        // Initialize character count
+        updateCharacterCount();
+        textInput.addEventListener('input', updateCharacterCount);
+        
+        // Toggle OpenAI options based on provider selection
+        providerSelect.addEventListener('change', function() {
+            const provider = this.value;
+            
+            if (provider === 'openai') {
+                openaiOptions.classList.add('active');
+                // Filter voices for OpenAI
+                filterVoicesByProvider('openai');
+            } else {
+                openaiOptions.classList.remove('active');
+                // Filter voices for AWS Polly
+                filterVoicesByProvider('aws-polly');
+            }
+        });
+        
+        // Filter voices based on selected provider
+        function filterVoicesByProvider(provider) {
+            const voices = voiceSelect.querySelectorAll('option');
+            voices.forEach(voice => {
+                if (voice.dataset.provider === provider || !voice.dataset.provider) {
+                    voice.style.display = 'block';
+                } else {
+                    voice.style.display = 'none';
+                }
+            });
+            
+            // Select the first available voice
+            const availableVoices = voiceSelect.querySelectorAll('option[style="display: block;"]');
+            if (availableVoices.length > 0) {
+                voiceSelect.value = availableVoices[0].value;
+            }
+        }
+        
+        // Update character count
+        function updateCharacterCount() {
+            const count = textInput.value.length;
+            characterCount.textContent = `${count}/${MAX_CHARS} characters`;
+            
+            if (count > MAX_CHARS * 0.9) {
+                characterCount.className = 'character-count warning';
+            } else if (count > MAX_CHARS) {
+                characterCount.className = 'character-count error';
+            } else {
+                characterCount.className = 'character-count';
+            }
+        }
+        
+        // Convert text to speech with current settings
+        speakButton.addEventListener('click', async () => {
+            const text = textInput.value.trim();
+            
+            // Validation
+            if (!text) {
+                updateStatus('Please enter some text first!', 'error');
+                return;
+            }
+            
+            if (text.length > MAX_CHARS) {
+                updateStatus(`Text must be less than ${MAX_CHARS} characters!`, 'error');
+                return;
+            }
+            
+            // Stop any currently playing audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            
+            updateStatus('Converting text to speech...', 'processing');
+            
+            try {
+                const provider = providerSelect.value;
+                const language = languageSelect.value;
+                const voice = voiceSelect.value;
+                
+                let options = {};
+                
+                if (provider === 'aws-polly') {
+                    options = {
+                        provider: 'aws-polly',
+                        voice: voice,
+                        engine: engineSelect.value,
+                        language: language
+                    };
+                } else {
+                    options = {
+                        provider: 'openai',
+                        voice: voice,
+                        model: modelSelect.value,
+                        response_format: responseFormat.value,
+                        instructions: instructions.value
+                    };
+                }
+                
+                const audio = await puter.ai.txt2speech(text, options);
+                
+                updateStatus(`Playing audio with ${provider}`, 'playing');
+                
+                currentAudio = audio;
+                await audio.play();
+                
+                // Reset status when audio finishes
+                audio.addEventListener('ended', () => {
+                    updateStatus('Conversion complete. Ready for next request.', '');
+                    currentAudio = null;
+                });
+                
+                audio.addEventListener('error', (e) => {
+                    updateStatus('Error playing audio', 'error');
+                    console.error('Audio playback error:', e);
+                    currentAudio = null;
+                });
+                
+            } catch (error) {
+                updateStatus(`Error: ${error.message}`, 'error');
+                console.error('TTS Error:', error);
+            }
+        });
+        
+        // Stop audio playback
+        stopButton.addEventListener('click', () => {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                updateStatus('Playback stopped', '');
+                currentAudio = null;
+            }
+        });
+        
+        // Play with specific engine (for comparison)
+        async function playWithEngine(engine) {
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                updateStatus('Please enter some text first!', 'error');
+                return;
+            }
+            
+            if (text.length > MAX_CHARS) {
+                updateStatus(`Text must be less than ${MAX_CHARS} characters!`, 'error');
+                return;
+            }
+            
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            
+            updateStatus(`Converting with ${engine} engine...`, 'processing');
+            
+            try {
+                const audio = await puter.ai.txt2speech(text, {
+                    voice: "Joanna",
+                    engine: engine,
+                    language: "en-US"
+                });
+                
+                updateStatus(`Playing ${engine} audio`, 'playing');
+                currentAudio = audio;
+                await audio.play();
+                
+                audio.addEventListener('ended', () => {
+                    updateStatus('Engine comparison complete', '');
+                    currentAudio = null;
+                });
+                
+            } catch (error) {
+                updateStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Load example text and settings
+        function loadExample(text, language, voice, provider) {
+            textInput.value = text;
+            languageSelect.value = language;
+            voiceSelect.value = voice;
+            providerSelect.value = provider;
+            
+            // Trigger provider change to update UI
+            providerSelect.dispatchEvent(new Event('change'));
+            
+            updateCharacterCount();
+            updateStatus('Example loaded. Click "Convert & Play" to hear it.', '');
+        }
+        
+        // Update status display
+        function updateStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status';
+            if (type) {
+                statusDiv.classList.add(type);
+            }
+        }
+        
+        // Initialize the page
+        filterVoicesByProvider('aws-polly');
+    </script>
+</body>
+</html>

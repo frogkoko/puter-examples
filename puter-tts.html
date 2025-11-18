@@ -333,7 +333,7 @@
         
         <div class="input-group">
             <label for="text-input">Text to Convert (max 3000 characters):</label>
-            <textarea id="text-input" placeholder="Enter the text you want to convert to speech...">Hello! Welcome to the Puter.ai Text-to-Speech demonstration. This tool can convert your text into natural-sounding speech in multiple languages.</textarea>
+            <textarea id="text-input" placeholder="Enter the text you want to convert to speech...">Halo! Selamat datang di demonstrasi Puter.ai Text-to-Speech. Alat ini dapat mengonversi teks Anda menjadi ucapan yang terdengar alami dalam berbagai bahasa, termasuk bahasa Indonesia.</textarea>
             <div id="character-count" class="character-count">0/3000 characters</div>
         </div>
         
@@ -460,8 +460,8 @@
                 <div class="example-text">Bonjour! Ceci est une démonstration de la synthèse vocale en français.</div>
             </div>
             
-            <div class="example-card" onclick="loadExample('Halo! Ini adalah demonstrasi mesin text-to-speech dalam bahasa Indonesia.', 'id-ID', 'Salli', 'aws-polly')">
-                <div class="example-title">Indonesian Example</div>
+            <div class="example-card" onclick="loadExample('Halo! Ini adalah demonstrasi mesin text-to-speech dalam bahasa Indonesia.', 'id-ID', 'nova', 'openai')">
+                <div class="example-title">Indonesian Example (OpenAI)</div>
                 <div class="example-text">Halo! Ini adalah demonstrasi mesin text-to-speech dalam bahasa Indonesia.</div>
             </div>
             
@@ -591,6 +591,7 @@
                         language: language
                     };
                 } else {
+                    // For OpenAI, we need to handle Indonesian language specifically
                     options = {
                         provider: 'openai',
                         voice: voice,
@@ -598,6 +599,14 @@
                         response_format: responseFormat.value,
                         instructions: instructions.value
                     };
+                    
+                    // Add language-specific settings for Indonesian
+                    if (language === 'id-ID') {
+                        // OpenAI TTS doesn't have language-specific voices, but we can add instructions
+                        if (!options.instructions) {
+                            options.instructions = "Speak in Indonesian with clear pronunciation";
+                        }
+                    }
                 }
                 
                 const audio = await puter.ai.txt2speech(text, options);
